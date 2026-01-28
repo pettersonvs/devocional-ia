@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Devocional IA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+        }
+        textarea, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        button {
+            background: #2c7be5;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        pre {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Devocional IA</h1>
+
+    <form method="POST">
+        <label>Qual o tema ou sentimento de hoje?</label>
+        <textarea name="tema" required></textarea>
+        <button type="submit">Gerar devocional</button>
+    </form>
+
+    {% if devocional %}
+        <hr>
+        <h2>Resultado</h2>
+        <pre>{{ devocional }}</pre>
+    {% endif %}
+</div>
+
+</body>
+</html>

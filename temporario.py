@@ -1,5 +1,3 @@
-from pipeline.biblia import carregar_biblia
+from pipeline.versiculos import selecionar_versiculos
 
-biblia = carregar_biblia()
-print(type(biblia))
-print(biblia[0])
+print(selecionar_versiculos("ansiedade"))

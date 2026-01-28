@@ -1,25 +1,106 @@
-from pipeline.biblia import carregar_biblia
+import json
+import os
 
-PALAVRAS_TEMA = {
-    "ansiedade": ["ansioso", "ansiedade", "medo", "temor", "aflito", "preocupado", "paz"],
-    "luto": ["choro", "lamento", "tristeza", "morte", "dor"],
-    "esperanca": ["esperança", "confiança", "fé", "promessa"],
+CAMINHO_BIBLIA = os.path.join("data", "biblia_arc.json")
+
+# Livros priorizados para cuidado pastoral
+LIVROS_PRIORITARIOS = [
+    "Salmos",
+    "Provérbios",
+    "Isaías",
+    "Mateus",
+    "Marcos",
+    "Lucas",
+    "João",
+    "Romanos",
+    "Filipenses",
+    "Hebreus"
+]
+
+TEMAS = {
+    "ansiedade": ["ansioso", "ansiedade", "medo", "aflição", "coração", "paz"],
+    "medo": ["medo", "temor", "assombro", "pavor"],
+    "tristeza": ["triste", "choro", "lamento", "angústia"],
+    "fé": ["fé", "confiança", "esperança", "crer"],
 }
+
+PALAVRAS_NEGATIVAS = [
+    "maldade",
+    "castigo",
+    "ira",
+    "juízo",
+    "destruição",
+    "arrependeu-se"
+]
+
+FALLBACK = [
+    "Salmos 23:1 — O Senhor é o meu pastor; nada me faltará.",
+    "Filipenses 4:6-7 — Não andeis ansiosos por coisa alguma, mas em tudo, pela oração..."
+]
+
+PALAVRAS_EXCLUDENTES = [
+    "ímpios",
+    "adversários",
+    "inimigos",
+    "mal",
+    "iniquidade",
+    "castigo"
+]
+
+PALAVRAS_POSITIVAS = [
+    "senhor",
+    "confiança",
+    "descanso",
+    "guardar",
+    "refúgio",
+    "paz"
+]
+
+
+def carregar_biblia():
+    with open(CAMINHO_BIBLIA, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def calcular_score(texto, palavras_chave):
+    score = 0
+
+    for p in palavras_chave:
+        if p in texto:
+            score += 3
+
+    for p in PALAVRAS_POSITIVAS:
+        if p in texto:
+            score += 2
+
+    for n in PALAVRAS_EXCLUDENTES:
+        if n in texto:
+            score -= 5
+
+    return score
+
 
 def selecionar_versiculos(tema, limite=3):
     biblia = carregar_biblia()
-    palavras = PALAVRAS_TEMA.get(tema, [])
+    palavras = TEMAS.get(tema.lower(), [])
 
-    encontrados = []
+    candidatos = []
 
-    for item in biblia:
-        texto = item.get("texto", "").lower()
+    for v in biblia:
+        livro = v.get("livro", "")
+        texto = v.get("texto", "").lower()
 
-        if any(p in texto for p in palavras):
-            referencia = f"{item['livro']} {item['capitulo']}:{item['versiculo']}"
-            encontrados.append((referencia, item["texto"]))
+        if livro not in LIVROS_PRIORITARIOS:
+            continue
 
-        if len(encontrados) >= limite:
-            break
+        score = calcular_score(texto, palavras)
 
-    return encontrados
+        if score > 0:
+            referencia = f"{livro} {v['capitulo']}:{v['versiculo']} — {v['texto']}"
+            candidatos.append((score, referencia))
+
+    candidatos.sort(reverse=True, key=lambda x: x[0])
+
+    resultados = [v[1] for v in candidatos[:limite]]
+
+    return resultados if resultados else FALLBACK
